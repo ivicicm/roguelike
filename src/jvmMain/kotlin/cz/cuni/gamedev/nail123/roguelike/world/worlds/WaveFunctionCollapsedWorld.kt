@@ -11,17 +11,16 @@ import cz.cuni.gamedev.nail123.roguelike.world.Area
 import cz.cuni.gamedev.nail123.roguelike.world.builders.wavefunctioncollapse.WFCAreaBuilder
 import org.hexworks.zircon.api.data.Position3D
 import java.util.ArrayDeque
-import kotlin.random.Random
 
 enum class HelperMapTileType {
     Room, Corridor, Wall
 }
 
 class WaveFunctionCollapsedWorld: DungeonWorld() {
-    // if type is room, position is one position in the entire room, same for corridor
+    // if type is room, centerPoint is one position in the entire room, same for corridor; centerPoint is used like an id for whole corridors and rooms
     data class HelperMapTile(val type: HelperMapTileType, var centerPoint: Position3D? = null)
     data class GetSameNeighbouringTilesResult(val tiles: List<Position3D>, val neighboursOfTiles: List<Position3D>)
-    data class Edge(val pointToCenter: Position3D, val edgeCenter: Position3D, val pointFromCenter: Position3D)
+    data class Edge(val roomInCenter: Position3D, val edgeCenter: Position3D, val roomOutCenter: Position3D)
 
 
     // First result are all the tiles with same type that can be reached from position by tiles with same type, next result is list of neighbours of the first tiles
@@ -58,6 +57,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             if(directionBlocked(Position3D.defaultPosition())) {
                 helperMap[key] = HelperMapTile(HelperMapTileType.Wall)
             }
+            // corridors are empty blocks with walls on opposite sides
             else if(directionBlocked(Position3D.create(1,0,0)) && directionBlocked(Position3D.create(-1,0,0))
                 || (directionBlocked(Position3D.create(0,1,0)) && directionBlocked(Position3D.create(0,-1,0)))) {
                 helperMap[key] = HelperMapTile (HelperMapTileType.Corridor)
@@ -78,6 +78,8 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         }
     }
 
+    // corridors that connect other number of rooms than 2 are discarded
+    // result is a map from rooms into edges for better graph traversal
     private fun removeComplicatedCorridorsAndConstructRoomGraph(helperMap: MutableMap<Position3D, HelperMapTile>): MutableMap<Position3D, MutableList<Edge>> {
         val result = mutableMapOf<Position3D, MutableList<Edge>>()
         helperMap.filter { it.value.type == HelperMapTileType.Room }.map { it.value.centerPoint!! }.distinct().forEach {
@@ -99,6 +101,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         return result
     }
 
+    // removes all cycles of length <= 3
     private fun removeCycles(helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>) {
         // not the best complexity but should be enough for 3 cycles
 
@@ -107,7 +110,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
         val extendsPathsByOne = { paths: List<List<Edge>> ->
             paths.map {
-                edges[it.last().pointFromCenter]!!.map { x -> listOf(it, listOf(x)).flatten() }
+                edges[it.last().roomOutCenter]!!.map { x -> listOf(it, listOf(x)).flatten() }
             }.flatten()
         }
 
@@ -120,7 +123,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
         val edgesToRemove = mutableSetOf<Position3D>()
         shuffledPaths.forEach {
-            val pathPoints = listOf(it[0].pointToCenter) + it.map {x -> x.pointFromCenter }
+            val pathPoints = listOf(it[0].roomInCenter) + it.map { x -> x.roomOutCenter }
             if(pathPoints.distinct().size < pathPoints.size) {
                 val edgePoints = it.map { x -> x.edgeCenter }
                 if(edgePoints.distinct().size == edgePoints.size && edgesToRemove.intersect(edgePoints.toSet()).isEmpty()) {
@@ -139,7 +142,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         }
     }
 
-    // if it fails to connect all, it returns false
+
     private fun connectEmptyRooms(helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>) {
         val directions = listOf(
             Position3D.create(0, -1, 0),
@@ -154,9 +157,10 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         // when doing this for the first time, it creates a corridor of zero length which is a bit hacky
         while(pointsWaitingToConnectToOthers.isNotEmpty()) {
             var tile = pointsWaitingToConnectToOthers.random()
+
             pointsWaitingToConnectToOthers.remove(tile)
 
-            run directions@{
+            run directions@{ // this is here as a label for "break", might be better to use for instead of forEach lambda...
                 (directions.indices).forEach direction@{ directionIndex ->
                     val direction = directions[directionIndex]
                     var neighbouringDirections = listOf(
@@ -165,7 +169,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                     )
                     neighbouringDirections += neighbouringDirections.map { it + it }
 
-                    // ensure corridor can be made
+                    // ensure corridor can be made, corridor also needs 2 walls on the right and left from it
                     var position = tile + direction
                     while (helperMap[position]?.type == HelperMapTileType.Wall && !neighbouringDirections.any {
                             val type =
@@ -173,6 +177,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                         }) {
                         position += direction
                     }
+                    // if corridor leads to already connected part or can't be finished
                     if (helperMap[position]?.type != HelperMapTileType.Room || connectedPoints.contains(position))
                         return@direction
 
