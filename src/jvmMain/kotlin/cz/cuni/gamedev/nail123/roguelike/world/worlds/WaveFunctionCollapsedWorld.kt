@@ -77,15 +77,15 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         }
     }
 
-    private fun removeComplicatedWallsAndConstructRoomGraph(helperMap: MutableMap<Position3D, HelperMapTile>): MutableMap<Position3D, MutableList<Edge>> {
+    private fun removeComplicatedCorridorsAndConstructRoomGraph(helperMap: MutableMap<Position3D, HelperMapTile>): MutableMap<Position3D, MutableList<Edge>> {
         val result = mutableMapOf<Position3D, MutableList<Edge>>()
         helperMap.filter { it.value.type == HelperMapTileType.Room }.map { it.value.centerPoint!! }.distinct().forEach {
             result[it] = mutableListOf()
         }
 
-        helperMap.filter { it.value.type == HelperMapTileType.Corridor }.map { it.value.centerPoint!! }.distinct().forEach {
+        helperMap.keys.filter { helperMap[it]?.type == HelperMapTileType.Corridor }.map { helperMap[it]?.centerPoint!! }.distinct().forEach {
             val (tiles, neighbours) = getSameNeighbouringTiles(helperMap, it)
-            val roomNeighbours = neighbours.filter { x -> helperMap[x]!!.type == HelperMapTileType.Room }.map { x -> helperMap[x]!!.centerPoint }
+            val roomNeighbours = neighbours.filter { x -> helperMap[x]!!.type == HelperMapTileType.Room }.map { x -> helperMap[x]!!.centerPoint }.distinct()
             if(roomNeighbours.size != 2) {
                 // corridor is weird, remove it
                 tiles.forEach { x -> helperMap[x] = HelperMapTile(HelperMapTileType.Wall) }
@@ -192,9 +192,9 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
         val helperMap = makeHelperMap(areaBuilder)
         addCenterPoints(helperMap)
-        val roomGraph = removeComplicatedWallsAndConstructRoomGraph(helperMap)
+        val roomGraph = removeComplicatedCorridorsAndConstructRoomGraph(helperMap)
         removeCycles(helperMap, roomGraph)
-        connectEmptyRooms(helperMap, roomGraph)
+//        connectEmptyRooms(helperMap, roomGraph)
 
         // update areaBuilder
         areaBuilder.blocks.forEach { (key, value) ->
@@ -209,6 +209,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                 } else
                     areaBuilder.blocks[key] = Floor()
             }
+
         }
 
         areaBuilder.addAtEmptyPosition(

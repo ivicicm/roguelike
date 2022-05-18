@@ -11,7 +11,7 @@ class Autotiling(val default: Tile, vararg val mapping: Pair<Int, Tile>) {
     operator fun getValue(block: GameBlock, property: KProperty<*>): Tile {
         var flags = 0
         for (direction in Direction.eightDirections) {
-            val targetClass = block.area[block.position shift direction]?.javaClass
+            val targetClass = if (!block.isAreaInitialized()) null else block.area[block.position shift direction]?.javaClass
             if (targetClass == null || targetClass == block.javaClass) {
                 flags = flags or direction.flag
             }
