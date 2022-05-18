@@ -190,11 +190,11 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
     override fun buildLevel(floor: Int): Area {
         val area = WFCAreaBuilder(GameConfig.AREA_SIZE).create()
 
-        val helperMap = makeHelperMap(area)
-        addCenterPoints(helperMap)
-        val roomGraph = removeComplicatedWallsAndConstructRoomGraph(helperMap)
-        removeCycles(helperMap, roomGraph)
-        connectEmptyRooms(helperMap, roomGraph)
+//        val helperMap = makeHelperMap(area)
+//        addCenterPoints(helperMap)
+//        val roomGraph = removeComplicatedWallsAndConstructRoomGraph(helperMap)
+//        removeCycles(helperMap, roomGraph)
+//        connectEmptyRooms(helperMap, roomGraph)
 
         // update area
 //        area.blocks.forEach { (key, value) ->
