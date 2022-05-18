@@ -20,7 +20,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
     // if type is room, position is one position in the entire room, same for corridor
     data class HelperMapTile(val type: HelperMapTileType, var centerPoint: Position3D? = null)
     data class GetSameNeighbouringTilesResult(val tiles: List<Position3D>, val neighboursOfTiles: List<Position3D>)
-    data class Edge(val pointFromCenter: Position3D, val edgeCenter: Position3D, val pointToCenter: Position3D)
+    data class Edge(val pointToCenter: Position3D, val edgeCenter: Position3D, val pointFromCenter: Position3D)
 
 
     // First result are all the tiles with same type that can be reached from position by tiles with same type, next result is list of neighbours of the first tiles
@@ -118,12 +118,11 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         shuffledPaths.shuffle()
 
         val edgesToRemove = mutableSetOf<Position3D>()
-        val edgesToRemoveData = mutableSetOf<Edge>()
         shuffledPaths.forEach {
-            val pathPoints = listOf(it[0].pointFromCenter) + it.map {x -> x.pointToCenter }
+            val pathPoints = listOf(it[0].pointToCenter) + it.map {x -> x.pointFromCenter }
             if(pathPoints.distinct().size < pathPoints.size) {
                 val edgePoints = it.map { x -> x.edgeCenter }
-                if(edgesToRemove.intersect(edgePoints.toSet()).isEmpty()) {
+                if(edgePoints.distinct().size == edgePoints.size && edgesToRemove.intersect(edgePoints.toSet()).isEmpty()) {
                     // breaking cycle
                     edgesToRemove.add(edgePoints[0])
                 }
