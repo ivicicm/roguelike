@@ -188,46 +188,46 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
     }
 
     override fun buildLevel(floor: Int): Area {
-        val area = WFCAreaBuilder(GameConfig.AREA_SIZE).create()
+        val areaBuilder = WFCAreaBuilder(GameConfig.AREA_SIZE).create()
 
-//        val helperMap = makeHelperMap(area)
-//        addCenterPoints(helperMap)
-//        val roomGraph = removeComplicatedWallsAndConstructRoomGraph(helperMap)
-//        removeCycles(helperMap, roomGraph)
-//        connectEmptyRooms(helperMap, roomGraph)
+        val helperMap = makeHelperMap(areaBuilder)
+        addCenterPoints(helperMap)
+        val roomGraph = removeComplicatedWallsAndConstructRoomGraph(helperMap)
+        removeCycles(helperMap, roomGraph)
+        connectEmptyRooms(helperMap, roomGraph)
 
-        // update area
-//        area.blocks.forEach { (key, value) ->
-//            if(helperMap[key]?.type == HelperMapTileType.Wall) {
-//                area.blocks[key] = Wall()
-//            } else if (helperMap[key]?.type == HelperMapTileType.Room) {
-//                area.blocks[key] = Floor()
-//            }
-//            else if (helperMap[key]?.type == HelperMapTileType.Corridor) {
-//                if(Pathfinding.fourDirectional(key).any { helperMap[it]?.type == HelperMapTileType.Room }) {
-//                    area.blocks[key] = Floor().apply { entities.add(Door()) }
-//                } else
-//                    area.blocks[key] = Floor()
-//            }
-//        }
+        // update areaBuilder
+        areaBuilder.blocks.forEach { (key, value) ->
+            if(helperMap[key]?.type == HelperMapTileType.Wall) {
+                areaBuilder.blocks[key] = Wall()
+            } else if (helperMap[key]?.type == HelperMapTileType.Room) {
+                areaBuilder.blocks[key] = Floor()
+            }
+            else if (helperMap[key]?.type == HelperMapTileType.Corridor) {
+                if(Pathfinding.fourDirectional(key).any { helperMap[it]?.type == HelperMapTileType.Room } ) {
+                    areaBuilder.blocks[key] = Floor().apply { entities.add(Door()) }
+                } else
+                    areaBuilder.blocks[key] = Floor()
+            }
+        }
 
-        area.addAtEmptyPosition(
-            area.player,
+        areaBuilder.addAtEmptyPosition(
+            areaBuilder.player,
             Position3D.create(0, 0, 0),
             GameConfig.VISIBLE_SIZE
         )
 
-        area.addEntity(FogOfWar(), Position3D.unknown())
+        areaBuilder.addEntity(FogOfWar(), Position3D.unknown())
 
         // Add stairs up
-        if (floor > 0) area.addEntity(Stairs(false), area.player.position)
+        if (floor > 0) areaBuilder.addEntity(Stairs(false), areaBuilder.player.position)
 
         // Add stairs down
-        val floodFill = Pathfinding.floodFill(area.player.position, area)
+        val floodFill = Pathfinding.floodFill(areaBuilder.player.position, areaBuilder)
         val maxDistance = floodFill.values.maxOrNull()!!
         val staircasePosition = floodFill.filter { it.value > maxDistance / 2 }.keys.random()
-        area.addEntity(Stairs(), staircasePosition)
+        areaBuilder.addEntity(Stairs(), staircasePosition)
 
-        return area.build()
+        return areaBuilder.build()
     }
 }
