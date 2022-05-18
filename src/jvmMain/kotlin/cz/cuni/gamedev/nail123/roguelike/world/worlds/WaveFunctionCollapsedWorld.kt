@@ -11,6 +11,7 @@ import cz.cuni.gamedev.nail123.roguelike.world.Area
 import cz.cuni.gamedev.nail123.roguelike.world.builders.wavefunctioncollapse.WFCAreaBuilder
 import org.hexworks.zircon.api.data.Position3D
 import java.util.ArrayDeque
+import kotlin.random.Random
 
 enum class HelperMapTileType {
     Room, Corridor, Wall
@@ -138,49 +139,55 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         }
     }
 
+    // if it fails to connect all, it returns false
     private fun connectEmptyRooms(helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>) {
-        val emptyRooms = edges.filter { it.value.size == 0 }.keys
         val directions = listOf(
-            Position3D.create(0, 1, 0),
-            Position3D.create(1, 0, 0),
             Position3D.create(0, -1, 0),
+            Position3D.create(1, 0, 0),
+            Position3D.create(0, 1, 0),
             Position3D.create(-1, 0, 0),
         )
+        val firstPoint = edges.keys.random()
+        val connectedPoints = mutableSetOf<Position3D>()
+        val pointsWaitingToConnectToOthers = mutableSetOf(firstPoint)
 
-        emptyRooms.forEach  emptyRooms@{ room ->
-            val (tiles, _) = getSameNeighbouringTiles(helperMap, room)
-            var tileConnected = false
-            tiles.forEach { tile ->
-                if(tileConnected)
-                    return@forEach
-                val wallDirections = directions.filter { helperMap[tile + it]?.type == HelperMapTileType.Wall }
-                if(wallDirections.size != 1)
-                    return@forEach
+        // when doing this for the first time, it creates a corridor of zero length which is a bit hacky
+        while(pointsWaitingToConnectToOthers.isNotEmpty()) {
+            var tile = pointsWaitingToConnectToOthers.random()
+            pointsWaitingToConnectToOthers.remove(tile)
 
-                // ensure wall can be made
-                val direction = wallDirections[0]
-                var position = tile + direction
-                while(helperMap[position]?.type == HelperMapTileType.Wall) {
-                    position += direction
-                }
-                if(helperMap[position]?.type != HelperMapTileType.Room || emptyRooms.contains(helperMap[position]?.centerPoint))
-                    return@forEach
+            run directions@{
+                (directions.indices).forEach direction@{ directionIndex ->
+                    val direction = directions[directionIndex]
+                    var neighbouringDirections = listOf(
+                        directions[(directionIndex + 1) % directions.size],
+                        directions[(directionIndex + directions.size - 1) % directions.size]
+                    )
+                    neighbouringDirections += neighbouringDirections.map { it + it }
 
-                // safe to make wall
-                position = tile + direction
-                val firstPosition = position
-                while(helperMap[position]?.type == HelperMapTileType.Wall) {
-                    helperMap[position] = HelperMapTile(HelperMapTileType.Corridor, firstPosition)
-                    position += direction
-                }
-                edges[room]!!.add(Edge(room, firstPosition, helperMap[position]!!.centerPoint!!))
-                tileConnected = true
-            }
-            if(!tileConnected) {
-                // room can't be connected, remove it
-                tiles.forEach {
-                    helperMap[it] = HelperMapTile(HelperMapTileType.Wall)
-                    edges.remove(room)
+                    // ensure corridor can be made
+                    var position = tile + direction
+                    while (helperMap[position]?.type == HelperMapTileType.Wall && !neighbouringDirections.any {
+                            val type =
+                                helperMap[position + it]?.type; type == HelperMapTileType.Room || type == HelperMapTileType.Corridor
+                        }) {
+                        position += direction
+                    }
+                    if (helperMap[position]?.type != HelperMapTileType.Room || connectedPoints.contains(position))
+                        return@direction
+
+                    // safe to make wall
+                    position = tile + direction
+                    val firstPosition = position
+                    while (helperMap[position]?.type == HelperMapTileType.Wall) {
+                        helperMap[position] = HelperMapTile(HelperMapTileType.Corridor, firstPosition)
+                        position += direction
+                    }
+                    // add all room tiles
+                    val (tiles, _) = getSameNeighbouringTiles(helperMap, position)
+                    connectedPoints.addAll(tiles)
+                    pointsWaitingToConnectToOthers.addAll(tiles)
+                    return@directions
                 }
             }
         }
@@ -193,7 +200,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         addCenterPoints(helperMap)
         val roomGraph = removeComplicatedCorridorsAndConstructRoomGraph(helperMap)
         removeCycles(helperMap, roomGraph)
-//        connectEmptyRooms(helperMap, roomGraph)
+        connectEmptyRooms(helperMap, roomGraph)
 
         // update areaBuilder
         areaBuilder.blocks.forEach { (key, value) ->
