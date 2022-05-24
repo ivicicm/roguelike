@@ -190,8 +190,9 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                 }
                 // add all room tiles
                 val (tiles, _) = getSameNeighbouringTiles(helperMap, position, true)
-                connectedPoints.addAll(tiles.filter { helperMap[position]?.type == HelperMapTileType.Room })
-                pointsWaitingToConnectToOthers.addAll(tiles)
+                val newTiles = tiles.filter { helperMap[position]?.type == HelperMapTileType.Room }
+                connectedPoints.addAll(newTiles)
+                pointsWaitingToConnectToOthers.addAll(newTiles)
                 break
 
             }
@@ -247,7 +248,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         // Add stairs down
         val floodFill = Pathfinding.floodFill(areaBuilder.player.position, areaBuilder)
         val maxDistance = floodFill.values.maxOrNull()!!
-        val staircasePosition = floodFill.filter { it.value > maxDistance / 2 }.keys.random()
+        val staircasePosition = floodFill.filter { it.value > maxDistance / 2 && helperMap[it.key]?.type == HelperMapTileType.Room }.keys.random()
         areaBuilder.addEntity(Stairs(), staircasePosition)
 
         return areaBuilder.build()
