@@ -6,6 +6,7 @@ import cz.cuni.gamedev.nail123.roguelike.blocks.Wall
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Door
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Stairs
 import cz.cuni.gamedev.nail123.roguelike.entities.unplacable.FogOfWar
+import cz.cuni.gamedev.nail123.roguelike.events.logMessage
 import cz.cuni.gamedev.nail123.roguelike.mechanics.Pathfinding
 import cz.cuni.gamedev.nail123.roguelike.world.Area
 import cz.cuni.gamedev.nail123.roguelike.world.builders.wavefunctioncollapse.WFCAreaBuilder
@@ -158,7 +159,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
         // when doing this for the first time, it creates a corridor of zero length which is a bit hacky
         while(pointsWaitingToConnectToOthers.isNotEmpty()) {
-            var tile = pointsWaitingToConnectToOthers.random()
+            val tile = pointsWaitingToConnectToOthers.random()
 
             pointsWaitingToConnectToOthers.remove(tile)
 
@@ -188,9 +189,26 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                 for(wallPosition in wallPositions) {
                     helperMap[wallPosition] = HelperMapTile(HelperMapTileType.Corridor, wallPositions.first())
                 }
+                if(wallPositions.any()) {
+                    edges[helperMap[tile]!!.centerPoint]!!.add(
+                        Edge(
+                            helperMap[tile]!!.centerPoint!!,
+                            wallPositions.first(),
+                            helperMap[position]!!.centerPoint!!
+                        )
+                    )
+                    edges[helperMap[position]!!.centerPoint]!!.add(
+                        Edge(
+                            helperMap[position]!!.centerPoint!!,
+                            wallPositions.first(),
+                            helperMap[tile]!!.centerPoint!!
+                        )
+                    )
+                }
+
                 // add all room tiles
                 val (tiles, _) = getSameNeighbouringTiles(helperMap, position, true)
-                val newTiles = tiles.filter { helperMap[position]?.type == HelperMapTileType.Room }
+                val newTiles = tiles.filter { helperMap[it]?.type == HelperMapTileType.Room }
                 connectedPoints.addAll(newTiles)
                 pointsWaitingToConnectToOthers.addAll(newTiles)
                 break
@@ -203,6 +221,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             if(value.type == HelperMapTileType.Room && !connectedPoints.contains(key)) {
                 val (tiles, _) = getSameNeighbouringTiles(helperMap, key, true)
                 connectedPoints.addAll(tiles.filter { helperMap[it]?.type == HelperMapTileType.Room })
+                tiles.filter { helperMap[it]?.type == HelperMapTileType.Room }.map { helperMap[it]!!.centerPoint }.distinct().forEach { edges.remove(it) }
                 for(tile in tiles)
                     helperMap[tile] = HelperMapTile(HelperMapTileType.Wall)
             }
@@ -227,7 +246,21 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             }
             else if (helperMap[key]?.type == HelperMapTileType.Corridor) {
                 if(Pathfinding.fourDirectional(key).any { helperMap[it]?.type == HelperMapTileType.Room } ) {
-                    areaBuilder.blocks[key] = Floor().apply { entities.add(Door()) }
+                    var noDoors = false
+                    for(i in (0..3))
+                        for(j in (0..3)) {
+                            val block = areaBuilder.blocks[key - Position3D.create(i, j, 0)]
+                            if(block?.entities?.any { it is Door } == true) {
+                                if(Math.random() > 0.5) {
+                                    block.entities.removeIf { it is Door }
+                                } else
+                                    noDoors = true
+                            }
+                        }
+                    if(!noDoors)
+                        areaBuilder.blocks[key] = Floor().apply { entities.add(Door()) }
+                    else
+                        areaBuilder.blocks[key] = Floor()
                 } else
                     areaBuilder.blocks[key] = Floor()
             }
