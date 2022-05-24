@@ -24,7 +24,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
 
     // First result are all the tiles with same type that can be reached from position by tiles with same type, next result is list of neighbours of the first tiles
-    private fun getSameNeighbouringTiles(helperMap: Map<Position3D, HelperMapTile>, position: Position3D): GetSameNeighbouringTilesResult {
+    private fun getSameNeighbouringTiles(helperMap: Map<Position3D, HelperMapTile>, position: Position3D, canGoThroughCorridors: Boolean = false): GetSameNeighbouringTilesResult {
         val tileType = helperMap[position]?.type
         val openVertices = ArrayDeque<Position3D>()
         val visitedVertices = mutableSetOf<Position3D>()
@@ -34,14 +34,16 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
         while (openVertices.isNotEmpty()) {
             val currentPos = openVertices.pollFirst()
+            val canConnectThroughTile = { it: Position3D -> helperMap[it]?.type == tileType || (canGoThroughCorridors && helperMap[it]?.type == HelperMapTileType.Corridor) }
             Pathfinding.fourDirectional(currentPos)
-                .filter { helperMap[it]?.type == tileType && !visitedVertices.contains(it) }
+
+                .filter { canConnectThroughTile(it) && !visitedVertices.contains(it) }
                 .forEach {
                     openVertices.addLast(it)
                     visitedVertices.add(it)
                 }
             Pathfinding.fourDirectional(currentPos)
-                .filter { helperMap[it] != null && helperMap[it]?.type != tileType }
+                .filter { helperMap[it] != null && !canConnectThroughTile(it)}
                 .forEach {
                     neighbouringVertices.add(it)
                 }
@@ -187,8 +189,8 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                     helperMap[wallPosition] = HelperMapTile(HelperMapTileType.Corridor, wallPositions.first())
                 }
                 // add all room tiles
-                val (tiles, _) = getSameNeighbouringTiles(helperMap, position)
-                connectedPoints.addAll(tiles)
+                val (tiles, _) = getSameNeighbouringTiles(helperMap, position, true)
+                connectedPoints.addAll(tiles.filter { helperMap[position]?.type == HelperMapTileType.Room })
                 pointsWaitingToConnectToOthers.addAll(tiles)
                 break
 
