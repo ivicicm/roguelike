@@ -196,6 +196,16 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
             }
         }
+
+        // remove empty rooms
+        for((key, value) in helperMap) {
+            if(value.type == HelperMapTileType.Room && !connectedPoints.contains(key)) {
+                val (tiles, _) = getSameNeighbouringTiles(helperMap, key, true)
+                connectedPoints.addAll(tiles.filter { helperMap[it]?.type == HelperMapTileType.Room })
+                for(tile in tiles)
+                    helperMap[tile] = HelperMapTile(HelperMapTileType.Wall)
+            }
+        }
     }
 
     override fun buildLevel(floor: Int): Area {
