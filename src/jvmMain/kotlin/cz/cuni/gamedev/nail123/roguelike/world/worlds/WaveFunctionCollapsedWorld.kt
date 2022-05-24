@@ -109,15 +109,15 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val maxCycleLength = 3
 
         val extendsPathsByOne = { paths: List<List<Edge>> ->
-            paths.map {
+            paths.flatMap {
                 edges[it.last().roomOutCenter]!!.map { x -> listOf(it, listOf(x)).flatten() }
-            }.flatten()
+            }
         }
 
         for (i in 0 until maxCycleLength-1) {
             paths = extendsPathsByOne(paths)
         }
-        paths = paths.map { (2..it.size).map {x -> it.slice(0 until x)} }.flatten()
+        paths = paths.flatMap { (2..it.size).map {x -> it.slice(0 until x)} }
         val shuffledPaths = paths.toMutableList()
         shuffledPaths.shuffle()
 
@@ -160,40 +160,38 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
             pointsWaitingToConnectToOthers.remove(tile)
 
-            run directions@{ // this is here as a label for "break", might be better to use for instead of forEach lambda...
-                (directions.indices).forEach direction@{ directionIndex ->
-                    val direction = directions[directionIndex]
-                    var neighbouringDirections = listOf(
-                        directions[(directionIndex + 1) % directions.size],
-                        directions[(directionIndex + directions.size - 1) % directions.size]
-                    )
-                    neighbouringDirections += neighbouringDirections.map { it + it }
+            for(directionIndex in directions.indices) {
+                val direction = directions[directionIndex]
+                var neighbouringDirections = listOf(
+                    directions[(directionIndex + 1) % directions.size],
+                    directions[(directionIndex + directions.size - 1) % directions.size]
+                )
+                neighbouringDirections += neighbouringDirections.map { it + it }
 
-                    // ensure corridor can be made, corridor also needs 2 walls on the right and left from it
-                    var position = tile + direction
-                    while (helperMap[position]?.type == HelperMapTileType.Wall && !neighbouringDirections.any {
-                            val type =
-                                helperMap[position + it]?.type; type == HelperMapTileType.Room || type == HelperMapTileType.Corridor
-                        }) {
-                        position += direction
-                    }
-                    // if corridor leads to already connected part or can't be finished
-                    if (helperMap[position]?.type != HelperMapTileType.Room || connectedPoints.contains(position))
-                        return@direction
-
-                    // safe to make wall
-                    position = tile + direction
-                    val firstPosition = position
-                    while (helperMap[position]?.type == HelperMapTileType.Wall) {
-                        helperMap[position] = HelperMapTile(HelperMapTileType.Corridor, firstPosition)
-                        position += direction
-                    }
-                    // add all room tiles
-                    val (tiles, _) = getSameNeighbouringTiles(helperMap, position)
-                    connectedPoints.addAll(tiles)
-                    pointsWaitingToConnectToOthers.addAll(tiles)
-                    return@directions
+                // ensure corridor can be made, corridor also needs 2 walls on the right and left from it
+                var position = tile + direction
+                var wallPositions = mutableListOf<Position3D>()
+                while (helperMap[position]?.type == HelperMapTileType.Wall && !neighbouringDirections.any {
+                        val type =
+                            helperMap[position + it]?.type; type == HelperMapTileType.Room || type == HelperMapTileType.Corridor
+                    }) {
+                    wallPositions.add(position)
+                    position += direction
                 }
+                // if corridor leads to already connected part or can't be finished
+                if (helperMap[position]?.type != HelperMapTileType.Room || connectedPoints.contains(position))
+                    continue
+
+                // safe to make wall
+                for(wallPosition in wallPositions) {
+                    helperMap[wallPosition] = HelperMapTile(HelperMapTileType.Corridor, wallPositions.first())
+                }
+                // add all room tiles
+                val (tiles, _) = getSameNeighbouringTiles(helperMap, position)
+                connectedPoints.addAll(tiles)
+                pointsWaitingToConnectToOthers.addAll(tiles)
+                break
+
             }
         }
     }
