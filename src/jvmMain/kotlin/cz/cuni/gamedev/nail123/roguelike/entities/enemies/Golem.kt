@@ -17,17 +17,18 @@ class Golem: Enemy(GameTiles.GOLEM), HasSmell {
     override var attack = 7
     override var defense = 2
 
-    var waiting = false
+    val movePattern = listOf(true, false)
+    var time = 0
 
     override fun update() {
-        if(!waiting) {
+        time++
+        if(movePattern[time % movePattern.size]) {
             if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
                 goToPlayer()
             } else if (seenPlayer) {
                 goToRandomTarget()
             }
         }
-        waiting = !waiting
     }
 
     override fun die() {

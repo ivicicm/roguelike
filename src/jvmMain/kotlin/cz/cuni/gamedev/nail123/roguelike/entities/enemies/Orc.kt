@@ -17,11 +17,17 @@ class Orc: Enemy(GameTiles.ORC), HasSmell {
     override var attack = 4
     override var defense = 1
 
+    val movePattern = listOf(true, true, false)
+    var time = 0
+
     override fun update() {
-        if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
-            goToPlayer(true)
-        } else if(seenPlayer) {
-            goToRandomTarget()
+        time++
+        if(movePattern[time % movePattern.size]) {
+            if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
+                goToPlayer(true)
+            } else if (seenPlayer) {
+                goToRandomTarget()
+            }
         }
     }
 

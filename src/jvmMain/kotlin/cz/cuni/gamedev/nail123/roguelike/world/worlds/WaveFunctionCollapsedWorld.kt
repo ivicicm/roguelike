@@ -233,7 +233,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
     private fun populateRooms(areaBuilder: WFCAreaBuilder, helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>, playerRoom: Position3D, floor: Int) {
         val fillWithPots = { positions: Iterable<Position3D>, roomSize: Int ->
-            positions.take(roomSize / 15).forEach {
+            positions.take(roomSize / 10).forEach {
                 areaBuilder.addEntity( if(Math.random() > 0.7) Pot() else SmallPot(), it)
             }
         }

@@ -18,7 +18,7 @@ class Rat: Enemy(GameTiles.RAT), HasSmell {
 
     override fun update() {
         if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
-            goToPlayer()
+            goToPlayer(true)
         }
     }
 
