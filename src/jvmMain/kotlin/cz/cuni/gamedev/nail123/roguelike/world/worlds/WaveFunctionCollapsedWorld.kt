@@ -265,7 +265,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300) { Orc() },
             1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300) { Golem() },
             1 to fillWithEmpty,
-            1 to fillWithChest,
+            10 to fillWithChest,
             1 to fillWithBoneFire,
         )
 

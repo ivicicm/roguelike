@@ -23,6 +23,12 @@ class StartView(val tileGrid: TileGrid): BaseView(tileGrid, ColorThemes.arc()) {
                 .addNewLine()
                 .addHeader("Wait: Q")
                 .addNewLine()
+                .addHeader("Inventory: I")
+                .addNewLine()
+                .addHeader("Select item: WS or arrow keys")
+                .addNewLine()
+                .addHeader("Drop item: D")
+                .addNewLine()
                 .withAlignmentWithin(screen, ComponentAlignment.CENTER)
                 .build()
 

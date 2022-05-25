@@ -29,7 +29,7 @@ class KeyboardConfig(val mapping: MutableMap<KeyCode, IAction<*>>) {
             // Other actions
             KeyCode.KEY_E to Game.BasicActions.PICK_UP.action,
             KeyCode.KEY_Q to Game.BasicActions.WAIT.action,
-            //KeyCode.KEY_I to ShowInventory()
+            KeyCode.KEY_I to ShowInventory()
         ))
     }
 }

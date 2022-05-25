@@ -9,7 +9,7 @@ import org.hexworks.zircon.api.data.Tile
 class Armor(val defence: Int): Item(GameTiles.ARMOR) {
     override fun isEquipable(character: HasInventory): Inventory.EquipResult {
         return if (character.inventory.equipped.filterIsInstance<Armor>().isNotEmpty()) {
-            Inventory.EquipResult(false, "You already have armor.")
+            Inventory.EquipResult(false, "You already have an armor.")
         } else Inventory.EquipResult.Success
     }
 

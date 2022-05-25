@@ -30,7 +30,7 @@ class InventoryFragment(val world: World): Fragment {
         } else {
             inventoryBox.text = inventory.items.mapIndexed { i, item ->
                 val prefix = if (selectedIndex == i) ">" else ""
-                val suffix = if (item.isEquipped) " E" else ""
+                val suffix = if (item.isEquipped) "" else ""
                 "$prefix$item$suffix"
             }.joinToString("\n")
         }

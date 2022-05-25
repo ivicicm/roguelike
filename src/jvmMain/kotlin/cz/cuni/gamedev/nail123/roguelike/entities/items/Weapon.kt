@@ -7,7 +7,7 @@ import org.hexworks.zircon.api.data.Tile
 abstract class Weapon(tile: Tile): Item(tile) {
     override fun isEquipable(character: HasInventory): Inventory.EquipResult {
         return if (character.inventory.equipped.filterIsInstance<Weapon>().isNotEmpty()) {
-            Inventory.EquipResult(false, "Cannot equip two weapons")
+            Inventory.EquipResult(false, "You already have a weapon.")
         } else Inventory.EquipResult.Success
     }
 }
