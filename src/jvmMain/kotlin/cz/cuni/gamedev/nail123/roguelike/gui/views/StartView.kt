@@ -12,21 +12,24 @@ import org.hexworks.zircon.api.view.base.BaseView
 
 class StartView(val tileGrid: TileGrid): BaseView(tileGrid, ColorThemes.arc()) {
     override fun onDock() {
-        val msg = "In this dungeon it is better to run from enemies when possible!"
+        val msg = "Killing enemies or looking into every room has no benefits here."
         val header = Components.textBox(msg.length)
+                .addHeader("Welcome to the speedrunner dungeon!")
+                .addNewLine()
+                .addNewLine()
+                .addNewLine()
+                .addNewLine()
                 .addHeader(msg)
+                .addHeader("Descend as fast as possible!")
+                .addNewLine()
+                .addNewLine()
                 .addNewLine()
                 .addNewLine()
                 .addHeader("Move: WASD or arrow keys")
-                .addNewLine()
                 .addHeader("Pick up item: E")
-                .addNewLine()
                 .addHeader("Wait: Q")
-                .addNewLine()
                 .addHeader("Inventory: I")
-                .addNewLine()
                 .addHeader("Select item: WS or arrow keys")
-                .addNewLine()
                 .addHeader("Drop item: D")
                 .addNewLine()
                 .withAlignmentWithin(screen, ComponentAlignment.CENTER)

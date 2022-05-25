@@ -233,7 +233,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         }
     }
 
-    private fun populateRooms(areaBuilder: WFCAreaBuilder, helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>, playerRoom: Position3D, floor: Int) {
+    private fun populateRooms(areaBuilder: WFCAreaBuilder, helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>, playerRoom: Position3D, floor: Int, stairCaseRoom: Position3D) {
         val fillWithPots = { positions: Iterable<Position3D>, roomSize: Int ->
             positions.take(roomSize / 10).forEach {
                 areaBuilder.addEntity( if(Math.random() > 0.7) Pot() else SmallPot(), it)
@@ -253,7 +253,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             fillWithPots(room.shuffled(), room.size)
         }
         val fillWithChest = { gameEntity: GameEntity, room: List<Position3D> ->
-            room.random().let {  areaBuilder.addEntity(Chest(gameEntity), it) }
+            room.random().let { areaBuilder.addEntity(Chest(gameEntity), it) }
         }
         val fillWithBoneFire = { room: List<Position3D> ->
             room.random().let {  areaBuilder.addEntity(Campfire(5), it) }
@@ -262,7 +262,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val possibleRooms = listOf<Pair<Int, (List<Position3D>) -> Unit>>(
             1 to fillWithEnemies((20 * enemyCountScale).toInt(), 70*enemyCountScale) { Dog() },
             1 to fillWithEnemies((40 * enemyCountScale).toInt(), 140*enemyCountScale) { Rat() },
-            1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300*enemyCountScale) { Orc() },
+            1 to fillWithEnemies((140 * enemyCountScale).toInt(), 500*enemyCountScale) { Orc() },
             1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300*enemyCountScale) { Golem() },
             1 to fillWithEmpty,
         )
@@ -271,30 +271,44 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             Ring(listOf(Rat::class, Dog::class, Orc::class, Golem::class).random())
         }
 
-        val specialRooms = edges.keys.shuffled().filter { getSameNeighbouringTiles(helperMap, it).tiles.size <= 150 }.take(5)
-        specialRooms.getOrNull(0)?.let {
-            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
-            fillWithChest(if(floor < 3) Armor(floor+1) else getRandomRing(), tiles)
-        }
-        specialRooms.getOrNull(1)?.let {
-            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
-            fillWithChest(if(floor < 3) Sword(4 + floor) else getRandomRing(), tiles)
-        }
-        specialRooms.getOrNull(2)?.let {
-            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
-            fillWithChest(getRandomRing(), tiles)
-        }
-        specialRooms.getOrNull(3)?.let {
-            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
-            fillWithBoneFire(tiles)
-        }
-        specialRooms.getOrNull(4)?.let {
-            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
-            fillWithBoneFire(tiles)
+        val (tiles, _) = getSameNeighbouringTiles(helperMap, stairCaseRoom)
+        tiles.shuffled().forEachIndexed { i, position ->
+            when(i) {
+                0 -> areaBuilder.addEntity(Stairs(), position)
+                1 -> if(floor < 3) areaBuilder.addEntity(Chest(Armor(floor+1)), position)
+                2 -> if(floor < 3) areaBuilder.addEntity(Chest(Sword(4 + floor)), position)
+                3 -> areaBuilder.addEntity(Chest(getRandomRing()), position)
+                4 -> areaBuilder.addEntity(Campfire(10), position)
+                5 -> areaBuilder.addEntity(HealthPotion(5), position)
+                6 -> areaBuilder.addEntity(HealthPotion(5), position)
+                7 -> areaBuilder.addEntity(HealthPotion(5), position)
+            }
         }
 
+//        val specialRooms = edges.keys.shuffled().filter { getSameNeighbouringTiles(helperMap, it).tiles.size <= 150 }.take(5)
+//        specialRooms.getOrNull(0)?.let {
+//            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+//            fillWithChest(if(floor < 3) Armor(floor+1) else getRandomRing(), tiles)
+//        }
+//        specialRooms.getOrNull(1)?.let {
+//            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+//            fillWithChest(if(floor < 3) Sword(4 + floor) else getRandomRing(), tiles)
+//        }
+//        specialRooms.getOrNull(2)?.let {
+//            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+//            fillWithChest(getRandomRing(), tiles)
+//        }
+//        specialRooms.getOrNull(3)?.let {
+//            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+//            fillWithBoneFire(tiles)
+//        }
+//        specialRooms.getOrNull(4)?.let {
+//            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+//            fillWithBoneFire(tiles)
+//        }
+
         val totalProb = possibleRooms.sumOf { it.first }
-        for(roomCenter in edges.keys.filter { it != playerRoom && !specialRooms.contains(it)}) {
+        for(roomCenter in edges.keys.filter { it != playerRoom && it != stairCaseRoom}) {
             val (tiles, _) = getSameNeighbouringTiles(helperMap, roomCenter)
             var randNumber = nextInt(totalProb)
             for (roomType in possibleRooms) {
@@ -364,10 +378,12 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         // Add stairs down
         val floodFill = Pathfinding.floodFill(areaBuilder.player.position, areaBuilder)
         val maxDistance = floodFill.values.maxOrNull()!!
-        val staircasePosition = floodFill.filter { it.value > maxDistance / 2 && helperMap[it.key]?.type == HelperMapTileType.Room }.keys.random()
-        areaBuilder.addEntity(Stairs(), staircasePosition)
+        val roomCandidates =
+            floodFill.filter { it.value > maxDistance / 2 && helperMap[it.key]?.type == HelperMapTileType.Room }.keys.map { helperMap[it]!!.centerPoint }
+                .distinct().shuffled()
+        val stairCaseRoom = roomCandidates.first { getSameNeighbouringTiles(helperMap, it!!).tiles.size > 50 } ?: roomCandidates.first()
 
-        populateRooms(areaBuilder, helperMap, roomGraph, playerRoom, floor)
+        populateRooms(areaBuilder, helperMap, roomGraph, playerRoom, floor, stairCaseRoom!!)
 
         return areaBuilder.build()
     }
