@@ -16,9 +16,13 @@ class Dog: Enemy(GameTiles.Dog), HasSmell {
     override var attack = 2
     override var defense = 0
 
+    override val randomWalkDistance = 5
+
     override fun update() {
         if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
             goToPlayer()
+        } else if (seenPlayer) {
+            goToRandomTarget()
         }
     }
 

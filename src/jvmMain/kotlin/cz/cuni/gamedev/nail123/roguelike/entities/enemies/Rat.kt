@@ -16,9 +16,13 @@ class Rat: Enemy(GameTiles.RAT), HasSmell {
     override var attack = 3
     override var defense = 0
 
+    override val randomWalkDistance = 5
+
     override fun update() {
         if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
             goToPlayer()
+        } else if (seenPlayer) {
+            goToRandomTarget()
         }
     }
 

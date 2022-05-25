@@ -23,11 +23,14 @@ abstract class Enemy(tile: Tile): MovingEntity(tile), HasCombatStats, Interactab
     }
 
     var randomWalkTarget: Position3D? = null
+    open val dontRoamAroundTooMuch = true
+    open val randomWalkDistance = 10
+    var roamingCenter: Position3D? = null
 
     fun goToRandomTarget(resetTarget: Boolean = false) {
         if(resetTarget || randomWalkTarget == null || chasingPlayer || randomWalkTarget == position) {
             chasingPlayer = false
-            val closeTiles = Pathfinding.floodFill(position, area, blocking = Pathfinding.defaultBlocking, maxDistance = 10)
+            val closeTiles = Pathfinding.floodFill(roamingCenter ?: position, area, blocking = Pathfinding.defaultBlocking, maxDistance = randomWalkDistance)
             randomWalkTarget = closeTiles.filter { it.value > 5 }.keys.randomOrNull() ?: closeTiles.keys.random()
         }
         if(!goSmartlyTowards(randomWalkTarget!!))
@@ -41,5 +44,8 @@ abstract class Enemy(tile: Tile): MovingEntity(tile), HasCombatStats, Interactab
         goSmartlyTowards(area.player.position)
         chasingPlayer = true
         seenPlayer = true
+        if(dontRoamAroundTooMuch) {
+            roamingCenter = position
+        }
     }
 }
