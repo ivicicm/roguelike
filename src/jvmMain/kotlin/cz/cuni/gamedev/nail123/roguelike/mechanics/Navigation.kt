@@ -19,7 +19,7 @@ object Navigation {
     }
 
     fun pathTo(from: Position3D, to: Position3D, area: Area): Direction? {
-        val positionsList = Pathfinding.aStar(from, to, area)
+        val positionsList = Pathfinding.aStar(from, to, area, Pathfinding.fourDirectional)
         if (positionsList == null || positionsList.path.isEmpty()) return null
 
         val nextPosition = positionsList.path.first()
