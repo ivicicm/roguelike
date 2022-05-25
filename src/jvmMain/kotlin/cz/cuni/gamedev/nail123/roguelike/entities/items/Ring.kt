@@ -8,7 +8,7 @@ import cz.cuni.gamedev.nail123.roguelike.tiles.GameTiles
 import org.hexworks.zircon.api.data.Tile
 import kotlin.reflect.KClass
 
-class Ring(val friendlyWith: KClass<Enemy>): Item(GameTiles.RING) {
+class Ring(val friendlyWith: KClass<*>): Item(GameTiles.RING) {
     override fun isEquipable(character: HasInventory): Inventory.EquipResult {
         return if (character.inventory.equipped.filterIsInstance<Ring>().isNotEmpty()) {
             Inventory.EquipResult(false, "You already have a ring.")

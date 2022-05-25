@@ -4,6 +4,7 @@ import cz.cuni.gamedev.nail123.roguelike.entities.Player
 import cz.cuni.gamedev.nail123.roguelike.entities.attributes.HasCombatStats
 import cz.cuni.gamedev.nail123.roguelike.events.logMessage
 import kotlin.math.max
+import kotlin.random.Random
 
 object Combat {
     /**
@@ -11,7 +12,7 @@ object Combat {
      * Meant to be expanded.
      */
     fun attack(attacker: HasCombatStats, defender: HasCombatStats) {
-        val damage = max(attacker.attack - defender.defense, 0)
+        val damage = max(attacker.attack - if(Random.nextDouble() > 0.75) defender.defense else 0, 0)
         defender.takeDamage(damage)
 
         when {

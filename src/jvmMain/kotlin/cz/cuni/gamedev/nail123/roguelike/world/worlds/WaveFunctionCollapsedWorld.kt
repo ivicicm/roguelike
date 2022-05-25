@@ -3,9 +3,9 @@ package cz.cuni.gamedev.nail123.roguelike.world.worlds
 import cz.cuni.gamedev.nail123.roguelike.GameConfig
 import cz.cuni.gamedev.nail123.roguelike.blocks.Floor
 import cz.cuni.gamedev.nail123.roguelike.blocks.Wall
+import cz.cuni.gamedev.nail123.roguelike.entities.GameEntity
 import cz.cuni.gamedev.nail123.roguelike.entities.enemies.*
-import cz.cuni.gamedev.nail123.roguelike.entities.items.Campfire
-import cz.cuni.gamedev.nail123.roguelike.entities.items.HealthPotion
+import cz.cuni.gamedev.nail123.roguelike.entities.items.*
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Door
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Stairs
 import cz.cuni.gamedev.nail123.roguelike.entities.unplacable.FogOfWar
@@ -252,8 +252,8 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val fillWithEmpty = { room: List<Position3D> ->
             fillWithPots(room.shuffled(), room.size)
         }
-        val fillWithChest = { room: List<Position3D> ->
-            room.random().let {  areaBuilder.addEntity(Chest(), it) }
+        val fillWithChest = { gameEntity: GameEntity, room: List<Position3D> ->
+            room.random().let {  areaBuilder.addEntity(Chest(gameEntity), it) }
         }
         val fillWithBoneFire = { room: List<Position3D> ->
             room.random().let {  areaBuilder.addEntity(Campfire(5), it) }
@@ -264,14 +264,37 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             1 to fillWithEnemies((40 * enemyCountScale).toInt(), 140) { Rat() },
             1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300) { Orc() },
             1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300) { Golem() },
-            1 to fillWithEmpty,
-            10 to fillWithChest,
-            1 to fillWithBoneFire,
+            0 to fillWithEmpty,
         )
 
+        val getRandomRing = {
+            Ring(listOf(Rat::class, Dog::class, Orc::class, Golem::class).random())
+        }
+
+        val specialRooms = edges.keys.shuffled().filter { getSameNeighbouringTiles(helperMap, it).tiles.size <= 150 }.take(5)
+        specialRooms.getOrNull(0)?.let {
+            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+            fillWithChest(if(floor < 3) Armor(floor+1) else getRandomRing(), tiles)
+        }
+        specialRooms.getOrNull(1)?.let {
+            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+            fillWithChest(if(floor < 3) Sword(4 + floor*2) else getRandomRing(), tiles)
+        }
+        specialRooms.getOrNull(2)?.let {
+            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+            fillWithChest(getRandomRing(), tiles)
+        }
+        specialRooms.getOrNull(3)?.let {
+            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+            fillWithBoneFire(tiles)
+        }
+        specialRooms.getOrNull(4)?.let {
+            val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
+            fillWithBoneFire(tiles)
+        }
 
         val totalProb = possibleRooms.sumOf { it.first }
-        for(roomCenter in edges.keys.filter { it != playerRoom }) {
+        for(roomCenter in edges.keys.filter { it != playerRoom && !specialRooms.contains(it)}) {
             val (tiles, _) = getSameNeighbouringTiles(helperMap, roomCenter)
             var randNumber = nextInt(totalProb)
             for (roomType in possibleRooms) {
@@ -286,7 +309,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             areaBuilder.addAtEmptyPosition(Ghost(), Position3D.defaultPosition(), areaBuilder.size)
         }
         repeat(5 + floor*2) {
-            areaBuilder.addAtEmptyPosition(HealthPotion(3), Position3D.defaultPosition(), areaBuilder.size)
+            areaBuilder.addAtEmptyPosition(HealthPotion(4), Position3D.defaultPosition(), areaBuilder.size)
         }
     }
 

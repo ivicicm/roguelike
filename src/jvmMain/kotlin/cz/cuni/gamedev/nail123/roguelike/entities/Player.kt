@@ -13,10 +13,10 @@ class Player: MovingEntity(GameTiles.PLAYER), HasVision, HasCombatStats, HasInve
     override val blocksMovement = true
     override val blocksVision = false
 
-    override var maxHitpoints = 30
-    override var hitpoints = 30
-    override var attack = 5
-    override var defense = 1
+    override var maxHitpoints = 15
+    override var hitpoints = 10
+    override var attack = 3
+    override var defense = 0
 
     override val inventory = Inventory(this)
 
