@@ -4,6 +4,7 @@ import cz.cuni.gamedev.nail123.roguelike.entities.GameEntity
 import cz.cuni.gamedev.nail123.roguelike.entities.MovingEntity
 import cz.cuni.gamedev.nail123.roguelike.entities.Player
 import cz.cuni.gamedev.nail123.roguelike.entities.attributes.*
+import cz.cuni.gamedev.nail123.roguelike.entities.items.Ring
 import cz.cuni.gamedev.nail123.roguelike.mechanics.Combat
 import cz.cuni.gamedev.nail123.roguelike.mechanics.Pathfinding
 import cz.cuni.gamedev.nail123.roguelike.mechanics.goBlindlyTowards
@@ -13,6 +14,10 @@ import org.hexworks.zircon.api.data.Tile
 
 abstract class Enemy(tile: Tile): MovingEntity(tile), HasCombatStats, Interactable, Interacting {
     override val blocksMovement = true
+
+    fun isFriendlyWithPlayer(): Boolean {
+        return area.player.items.any { it is Ring && it.friendlyWith.isInstance(this) }
+    }
 
     override fun acceptInteractFrom(other: GameEntity, type: InteractionType) = interactionContext(other, type) {
         withEntity<Player>(InteractionType.BUMPED) { player -> Combat.attack(player, this@Enemy) }
@@ -41,7 +46,8 @@ abstract class Enemy(tile: Tile): MovingEntity(tile), HasCombatStats, Interactab
     var seenPlayer = false
 
     fun goToPlayer() {
-        goSmartlyTowards(area.player.position)
+        if(!isFriendlyWithPlayer())
+            goSmartlyTowards(area.player.position)
         chasingPlayer = true
         seenPlayer = true
         if(dontRoamAroundTooMuch) {

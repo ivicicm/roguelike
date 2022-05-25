@@ -38,6 +38,7 @@ object GameTiles {
     val CHEST = graphicalTile("Chest")
     val ARMOR = graphicalTile("Armor")
     val CAMPFIRE = graphicalTile("Campfire")
+    val RING = graphicalTile("Ring")
 
 
 

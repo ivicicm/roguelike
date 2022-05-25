@@ -1,6 +1,7 @@
 package cz.cuni.gamedev.nail123.roguelike.entities.enemies
 
 import cz.cuni.gamedev.nail123.roguelike.entities.attributes.HasSmell
+import cz.cuni.gamedev.nail123.roguelike.entities.items.Ring
 import cz.cuni.gamedev.nail123.roguelike.entities.items.Sword
 import cz.cuni.gamedev.nail123.roguelike.mechanics.Pathfinding
 import cz.cuni.gamedev.nail123.roguelike.mechanics.goBlindlyTowards
@@ -19,6 +20,6 @@ class Chest: Enemy(GameTiles.CHEST) {
     override fun die() {
         super.die()
         // Drop a sword
-        this.block.entities.add(Sword(2))
+        this.block.entities.add(Ring(Enemy::class))
     }
 }
