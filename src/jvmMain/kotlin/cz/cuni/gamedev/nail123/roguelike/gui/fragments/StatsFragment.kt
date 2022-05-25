@@ -7,6 +7,7 @@ import org.hexworks.zircon.api.component.Fragment
 
 class StatsFragment(val world: World): Fragment {
     val hpTextBox = createTextBox()
+    val maxHpTextBox = createTextBox()
     val attackTextBox = createTextBox()
     val defenseTextBox = createTextBox()
 
@@ -16,6 +17,7 @@ class StatsFragment(val world: World): Fragment {
             .withSpacing(0)
             .build().apply {
                 addComponent(Components.header().withText("Stats").build())
+                addComponent(maxHpTextBox)
                 addComponent(hpTextBox)
                 addComponent(attackTextBox)
                 addComponent(defenseTextBox)
@@ -23,6 +25,7 @@ class StatsFragment(val world: World): Fragment {
 
     fun update() {
         hpTextBox.text = "HP: ${world.player.hitpoints}"
+        maxHpTextBox.text = "Max HP: ${world.player.maxHitpoints}"
         attackTextBox.text = "Attack: ${world.player.attack}"
         defenseTextBox.text = "Defense: ${world.player.defense}"
     }

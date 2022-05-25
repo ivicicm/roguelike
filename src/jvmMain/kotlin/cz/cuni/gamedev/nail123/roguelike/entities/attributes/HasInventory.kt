@@ -40,7 +40,10 @@ class Inventory(val player: Player) {
         if (test.success) {
             add(item)
             item.onEquip(this, player)
-            logMessage("Equipped $item")
+            if(item.isOneTimeEffect)
+                logMessage("Consumed $item")
+            else
+                logMessage("Equipped $item")
         } else {
             logMessage(test.errorMessage)
         }
@@ -53,7 +56,7 @@ class Inventory(val player: Player) {
 
     fun add(item: Item) {
         item.block.entities.remove(item)
-        if (item !in _items) {
+        if (!item.isOneTimeEffect && item !in _items) {
             _items.add(item)
         }
         InventoryUpdated(this).emit()

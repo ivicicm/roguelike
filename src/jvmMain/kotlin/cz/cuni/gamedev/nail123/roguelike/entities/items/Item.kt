@@ -11,6 +11,7 @@ abstract class Item(tile: Tile): GameEntity(tile), Interactable {
     override val blocksVision = false
     var isEquipped = false
         private set
+    open val isOneTimeEffect = false
 
     abstract fun isEquipable(character: HasInventory): Inventory.EquipResult
 

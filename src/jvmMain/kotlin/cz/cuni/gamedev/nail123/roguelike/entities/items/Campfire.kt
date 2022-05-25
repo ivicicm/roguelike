@@ -2,22 +2,27 @@ package cz.cuni.gamedev.nail123.roguelike.entities.items
 
 import cz.cuni.gamedev.nail123.roguelike.entities.Player
 import cz.cuni.gamedev.nail123.roguelike.entities.attributes.HasInventory
+import cz.cuni.gamedev.nail123.roguelike.entities.attributes.Inventory
 import cz.cuni.gamedev.nail123.roguelike.tiles.GameTiles
+import org.hexworks.zircon.api.data.Tile
 
-class Sword(val attackPower: Int): Weapon(GameTiles.SWORD) {
+class Campfire(val healths: Int): Item(GameTiles.CAMPFIRE) {
+    override fun isEquipable(character: HasInventory): Inventory.EquipResult {
+        return Inventory.EquipResult(true, "")
+    }
+
+    override val isOneTimeEffect = true
+
     override fun onEquip(character: HasInventory) {
         if (character is Player) {
-            character.attack += attackPower
+            character.maxHitpoints += healths
         }
     }
 
     override fun onUnequip(character: HasInventory) {
-        if (character is Player) {
-            character.attack -= attackPower
-        }
     }
 
     override fun toString(): String {
-        return "Sword ($attackPower)"
+        return "Bonefire flame ($healths)"
     }
 }

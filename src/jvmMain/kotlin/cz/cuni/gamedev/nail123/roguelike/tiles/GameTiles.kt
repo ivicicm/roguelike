@@ -31,13 +31,13 @@ object GameTiles {
     val SWORD = graphicalTile("Sword")
     val POT = graphicalTile("Pot")
     val POT_SMALL = graphicalTile("Pot small")
-    val Snake = graphicalTile("Snake")
+    val POTION = graphicalTile("Potion")
     val Dog = graphicalTile("Dog")
     val GHOST = graphicalTile("Ghost")
     val GOLEM = graphicalTile("Golem")
     val CHEST = graphicalTile("Chest")
     val ARMOR = graphicalTile("Armor")
-    val HEART = graphicalTile("Heart full")
+    val CAMPFIRE = graphicalTile("Campfire")
 
 
 

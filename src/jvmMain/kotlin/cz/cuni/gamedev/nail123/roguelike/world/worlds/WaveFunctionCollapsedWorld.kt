@@ -4,6 +4,8 @@ import cz.cuni.gamedev.nail123.roguelike.GameConfig
 import cz.cuni.gamedev.nail123.roguelike.blocks.Floor
 import cz.cuni.gamedev.nail123.roguelike.blocks.Wall
 import cz.cuni.gamedev.nail123.roguelike.entities.enemies.*
+import cz.cuni.gamedev.nail123.roguelike.entities.items.Campfire
+import cz.cuni.gamedev.nail123.roguelike.entities.items.HealthPotion
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Door
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Stairs
 import cz.cuni.gamedev.nail123.roguelike.entities.unplacable.FogOfWar
@@ -253,6 +255,9 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val fillWithChest = { room: List<Position3D> ->
             room.random().let {  areaBuilder.addEntity(Chest(), it) }
         }
+        val fillWithBoneFire = { room: List<Position3D> ->
+            room.random().let {  areaBuilder.addEntity(Campfire(5), it) }
+        }
         val enemyCountScale = 3
         val possibleRooms = listOf<Pair<Int, (List<Position3D>) -> Unit>>(
             1 to fillWithEnemies((20 * enemyCountScale).toInt(), 70) { Dog() },
@@ -261,6 +266,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300) { Golem() },
             1 to fillWithEmpty,
             1 to fillWithChest,
+            1 to fillWithBoneFire,
         )
 
 
@@ -276,8 +282,11 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                 }
             }
         }
-        repeat(1 + floor) {
-            areaBuilder.addEntity(Ghost(), Position3D.defaultPosition())
+        repeat(2 + floor*2) {
+            areaBuilder.addAtEmptyPosition(Ghost(), Position3D.defaultPosition(), areaBuilder.size)
+        }
+        repeat(5 + floor*2) {
+            areaBuilder.addAtEmptyPosition(HealthPotion(3), Position3D.defaultPosition(), areaBuilder.size)
         }
     }
 

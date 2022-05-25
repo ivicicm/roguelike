@@ -25,10 +25,4 @@ class Dog: Enemy(GameTiles.Dog), HasSmell {
             goToRandomTarget()
         }
     }
-
-    override fun die() {
-        super.die()
-        // Drop a sword
-        this.block.entities.add(Sword(2))
-    }
 }

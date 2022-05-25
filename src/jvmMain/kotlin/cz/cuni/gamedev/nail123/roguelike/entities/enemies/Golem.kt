@@ -30,10 +30,4 @@ class Golem: Enemy(GameTiles.GOLEM), HasSmell {
             }
         }
     }
-
-    override fun die() {
-        super.die()
-        // Drop a sword
-        this.block.entities.add(Sword(2))
-    }
 }
