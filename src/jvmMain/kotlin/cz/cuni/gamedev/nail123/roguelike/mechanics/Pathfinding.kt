@@ -101,7 +101,8 @@ object Pathfinding {
     fun floodFill(start: Position3D,
                   area: IArea,
                   movement: (Position3D) -> List<Position3D> = eightDirectional,
-                  blocking: (GameBlock) -> Boolean = doorOpening): Map<Position3D, Int> {
+                  blocking: (GameBlock) -> Boolean = doorOpening,
+                  maxDistance: Int = 10000): Map<Position3D, Int> {
 
         data class PointWithDistance(val position: Position3D, val distance: Int)
 
@@ -113,6 +114,8 @@ object Pathfinding {
 
         while (openVertices.isNotEmpty()) {
             val currentPos = openVertices.pollFirst()
+            if(currentPos.distance == maxDistance)
+                continue
             movement(currentPos.position)
                     .filter { area[it]?.let { block -> blocking(block) } == false && !allDistances.containsKey(it) }
                     .forEach {

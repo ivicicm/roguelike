@@ -6,14 +6,14 @@ import cz.cuni.gamedev.nail123.roguelike.mechanics.Pathfinding
 import cz.cuni.gamedev.nail123.roguelike.mechanics.goBlindlyTowards
 import cz.cuni.gamedev.nail123.roguelike.tiles.GameTiles
 
-class Rat: Enemy(GameTiles.RAT), HasSmell {
+class Dog: Enemy(GameTiles.Dog), HasSmell {
     override val blocksMovement = true
     override val blocksVision = false
     override val smellingRadius = 7
 
     override val maxHitpoints = 10
-    override var hitpoints = 6
-    override var attack = 3
+    override var hitpoints = 3
+    override var attack = 2
     override var defense = 0
 
     override fun update() {

@@ -3,6 +3,8 @@ package cz.cuni.gamedev.nail123.roguelike.world.worlds
 import cz.cuni.gamedev.nail123.roguelike.GameConfig
 import cz.cuni.gamedev.nail123.roguelike.blocks.Floor
 import cz.cuni.gamedev.nail123.roguelike.blocks.Wall
+import cz.cuni.gamedev.nail123.roguelike.entities.enemies.Ghost
+import cz.cuni.gamedev.nail123.roguelike.entities.enemies.Golem
 import cz.cuni.gamedev.nail123.roguelike.entities.enemies.Rat
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Door
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Stairs
@@ -284,8 +286,8 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val staircasePosition = floodFill.filter { it.value > maxDistance / 2 && helperMap[it.key]?.type == HelperMapTileType.Room }.keys.random()
         areaBuilder.addEntity(Stairs(), staircasePosition)
 
-        repeat (currentLevel+2) {
-            areaBuilder.addAtEmptyPosition(Rat(), Position3D.defaultPosition(), areaBuilder.size)
+        repeat (currentLevel+12) {
+            areaBuilder.addAtEmptyPosition(Ghost(), Position3D.defaultPosition(), areaBuilder.size)
         }
 
         return areaBuilder.build()
