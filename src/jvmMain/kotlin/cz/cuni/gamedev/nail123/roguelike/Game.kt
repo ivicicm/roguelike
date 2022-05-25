@@ -26,7 +26,8 @@ class Game(val world: World = GameConfig.defaultWorld()) {
         MOVE_SOUTHEAST(Move(Direction.SOUTH_EAST)),
         MOVE_SOUTHWEST(Move(Direction.SOUTH_WEST)),
         MOVE_NORTHWEST(Move(Direction.NORTH_WEST)),
-        PICK_UP(PickUp())
+        PICK_UP(PickUp()),
+        WAIT(Wait()),
     }
 
     fun getValidActions(): List<GameAction> {

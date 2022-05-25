@@ -13,12 +13,12 @@ class KeyboardConfig(val mapping: MutableMap<KeyCode, IAction<*>>) {
             KeyCode.KEY_A to Game.BasicActions.MOVE_WEST.action,
             KeyCode.KEY_S to Game.BasicActions.MOVE_SOUTH.action,
             KeyCode.KEY_D to Game.BasicActions.MOVE_EAST.action,
-            KeyCode.KEY_E to Game.BasicActions.MOVE_NORTHEAST.action,
-            KeyCode.KEY_C to Game.BasicActions.MOVE_SOUTHEAST.action,
-            KeyCode.KEY_Z to Game.BasicActions.MOVE_SOUTHWEST.action,
+//            KeyCode.KEY_E to Game.BasicActions.MOVE_NORTHEAST.action,
+//            KeyCode.KEY_C to Game.BasicActions.MOVE_SOUTHEAST.action,
+//            KeyCode.KEY_Z to Game.BasicActions.MOVE_SOUTHWEST.action,
             // Supporting czech keyboard layout
-            KeyCode.KEY_Y to Game.BasicActions.MOVE_SOUTHWEST.action,
-            KeyCode.KEY_Q to Game.BasicActions.MOVE_NORTHWEST.action,
+//            KeyCode.KEY_Y to Game.BasicActions.MOVE_SOUTHWEST.action,
+//            KeyCode.KEY_Q to Game.BasicActions.MOVE_NORTHWEST.action,
 
             // 4-directional movement also on arrow keys
             KeyCode.UP to Game.BasicActions.MOVE_NORTH.action,
@@ -27,8 +27,9 @@ class KeyboardConfig(val mapping: MutableMap<KeyCode, IAction<*>>) {
             KeyCode.RIGHT to Game.BasicActions.MOVE_EAST.action,
 
             // Other actions
-            KeyCode.KEY_P to Game.BasicActions.PICK_UP.action,
-            KeyCode.KEY_I to ShowInventory()
+            KeyCode.KEY_E to Game.BasicActions.PICK_UP.action,
+            KeyCode.KEY_Q to Game.BasicActions.WAIT.action,
+            //KeyCode.KEY_I to ShowInventory()
         ))
     }
 }

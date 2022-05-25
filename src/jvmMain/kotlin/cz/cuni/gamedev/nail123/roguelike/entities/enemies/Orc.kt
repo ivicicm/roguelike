@@ -24,7 +24,7 @@ class Orc: Enemy(GameTiles.ORC), HasSmell {
         time++
         if(movePattern[time % movePattern.size]) {
             if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
-                goToPlayer(true)
+                goToPlayer()
             } else if (seenPlayer) {
                 goToRandomTarget()
             }

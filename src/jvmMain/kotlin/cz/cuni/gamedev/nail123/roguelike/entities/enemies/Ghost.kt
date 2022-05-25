@@ -18,7 +18,7 @@ class Ghost: Enemy(GameTiles.GHOST), HasSmell {
 
     override fun update() {
         if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
-            goToPlayer(true)
+            goToPlayer()
         } else {
             goToRandomTarget()
         }

@@ -2,6 +2,7 @@ package cz.cuni.gamedev.nail123.roguelike.entities.attributes
 
 import cz.cuni.gamedev.nail123.roguelike.blocks.GameBlock
 import cz.cuni.gamedev.nail123.roguelike.entities.GameEntity
+import cz.cuni.gamedev.nail123.roguelike.entities.enemies.Enemy
 
 enum class InteractionType {
     BUMPED, STEPPED_ON
@@ -37,12 +38,13 @@ fun interactionContext(other: GameEntity, type: InteractionType, scopeFunc: Inte
  * @return Whether an interaction occured.
  */
 fun interaction(source: GameEntity, target: GameBlock, type: InteractionType): Boolean {
+    val sortedEntities =  target.entities.sortedBy { if(it is Enemy) 0 else 1 }
     if (source is Interacting) {
-        target.entities.forEach {
+        sortedEntities.forEach {
             if (source.interactWith(it, type)) return true
         }
     }
-    target.entities.filterIsInstance<Interactable>().forEach {
+    sortedEntities.filterIsInstance<Interactable>().forEach {
         if (it.acceptInteractFrom(source, type)) return true
     }
     return false

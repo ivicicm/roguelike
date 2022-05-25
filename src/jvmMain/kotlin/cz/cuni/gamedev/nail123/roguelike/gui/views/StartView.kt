@@ -12,9 +12,16 @@ import org.hexworks.zircon.api.view.base.BaseView
 
 class StartView(val tileGrid: TileGrid): BaseView(tileGrid, ColorThemes.arc()) {
     override fun onDock() {
-        val msg = "Hello, world!"
+        val msg = "In this dungeon it is better to run from enemies when possible!"
         val header = Components.textBox(msg.length)
                 .addHeader(msg)
+                .addNewLine()
+                .addNewLine()
+                .addHeader("Move: WASD or arrow keys")
+                .addNewLine()
+                .addHeader("Pick up item: E")
+                .addNewLine()
+                .addHeader("Wait: Q")
                 .addNewLine()
                 .withAlignmentWithin(screen, ComponentAlignment.CENTER)
                 .build()

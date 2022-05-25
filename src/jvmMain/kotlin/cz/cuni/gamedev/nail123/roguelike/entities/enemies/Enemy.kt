@@ -37,11 +37,8 @@ abstract class Enemy(tile: Tile): MovingEntity(tile), HasCombatStats, Interactab
     var chasingPlayer = false
     var seenPlayer = false
 
-    fun goToPlayer(goSmartly: Boolean = false) {
-        if(goSmartly)
-            goSmartlyTowards(area.player.position)
-        else
-            goBlindlyTowards(area.player.position)
+    fun goToPlayer() {
+        goSmartlyTowards(area.player.position)
         chasingPlayer = true
         seenPlayer = true
     }
