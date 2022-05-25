@@ -3,9 +3,7 @@ package cz.cuni.gamedev.nail123.roguelike.world.worlds
 import cz.cuni.gamedev.nail123.roguelike.GameConfig
 import cz.cuni.gamedev.nail123.roguelike.blocks.Floor
 import cz.cuni.gamedev.nail123.roguelike.blocks.Wall
-import cz.cuni.gamedev.nail123.roguelike.entities.enemies.Ghost
-import cz.cuni.gamedev.nail123.roguelike.entities.enemies.Golem
-import cz.cuni.gamedev.nail123.roguelike.entities.enemies.Rat
+import cz.cuni.gamedev.nail123.roguelike.entities.enemies.*
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Door
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Stairs
 import cz.cuni.gamedev.nail123.roguelike.entities.unplacable.FogOfWar
@@ -14,6 +12,9 @@ import cz.cuni.gamedev.nail123.roguelike.world.Area
 import cz.cuni.gamedev.nail123.roguelike.world.builders.wavefunctioncollapse.WFCAreaBuilder
 import org.hexworks.zircon.api.data.Position3D
 import java.util.*
+import kotlin.random.Random.Default.nextDouble
+import kotlin.random.Random.Default.nextInt
+import kotlin.reflect.KClass
 
 enum class HelperMapTileType {
     Room, Corridor, Wall
@@ -230,14 +231,54 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         }
     }
 
-    private fun populateRooms(areaBuilder: WFCAreaBuilder, helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>, playerRoom: Position3D) {
-        for(roomCenter in edges.keys.filter { it != playerRoom }) {
+    private fun populateRooms(areaBuilder: WFCAreaBuilder, helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>, playerRoom: Position3D, floor: Int) {
+        val fillWithPots = { positions: Iterable<Position3D>, roomSize: Int ->
+            positions.take(roomSize / 15).forEach {
+                areaBuilder.addEntity( if(Math.random() > 0.7) Pot() else SmallPot(), it)
+            }
+        }
+        val fillWithEnemies = { numberOfTilesForOneEnemy: Int, tilesForEnemyScaledByLevel: Int, enemyFactory: () -> Enemy ->
+            { room: List<Position3D> ->
+                val count = (room.size.coerceAtMost(200) / numberOfTilesForOneEnemy * (1 + floor.toDouble() / tilesForEnemyScaledByLevel))
+                val intCount = count.toInt() + if(kotlin.random.Random.nextDouble() > count - count.toInt()) 1 else 0
+                val shuffledRoom = room.shuffled()
+                shuffledRoom.take(intCount).forEach { areaBuilder.addEntity(enemyFactory(), it) }
+                shuffledRoom.reversed().take(2).forEach { areaBuilder.addEntity(SmallPot(), it) }
+                fillWithPots(shuffledRoom.reversed(), room.size)
+            }
+        }
+        val fillWithEmpty = { room: List<Position3D> ->
+            fillWithPots(room.shuffled(), room.size)
+        }
+        val fillWithChest = { room: List<Position3D> ->
+            room.random().let {  areaBuilder.addEntity(Chest(), it) }
+        }
+        val enemyCountScale = 3
+        val possibleRooms = listOf<Pair<Int, (List<Position3D>) -> Unit>>(
+            1 to fillWithEnemies((20 * enemyCountScale).toInt(), 70) { Dog() },
+            1 to fillWithEnemies((40 * enemyCountScale).toInt(), 140) { Rat() },
+            1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300) { Orc() },
+            1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300) { Golem() },
+            1 to fillWithEmpty,
+            1 to fillWithChest,
+        )
 
+
+        val totalProb = possibleRooms.sumOf { it.first }
+        for(roomCenter in edges.keys.filter { it != playerRoom }) {
+            val (tiles, _) = getSameNeighbouringTiles(helperMap, roomCenter)
+            var randNumber = nextInt(totalProb)
+            for (roomType in possibleRooms) {
+                randNumber -= roomType.first
+                if (randNumber < 0) {
+                    roomType.second(tiles)
+                    break
+                }
+            }
         }
-        repeat (currentLevel+12) {
-            areaBuilder.addAtEmptyPosition(Ghost(), Position3D.defaultPosition(), areaBuilder.size)
+        repeat(1 + floor) {
+            areaBuilder.addEntity(Ghost(), Position3D.defaultPosition())
         }
-        areaBuilder.addEntity(Golem(), Position3D.defaultPosition())
     }
 
     override fun buildLevel(floor: Int): Area {
@@ -281,7 +322,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
         val playerRoom = roomGraph.keys.random()
         val playerPosition = getSameNeighbouringTiles(helperMap, playerRoom).tiles.random()
-        areaBuilder.addEntity(areaBuilder.player, playerRoom)
+        areaBuilder.addEntity(areaBuilder.player, playerPosition)
 
         areaBuilder.addEntity(FogOfWar(), Position3D.unknown())
 
@@ -294,7 +335,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val staircasePosition = floodFill.filter { it.value > maxDistance / 2 && helperMap[it.key]?.type == HelperMapTileType.Room }.keys.random()
         areaBuilder.addEntity(Stairs(), staircasePosition)
 
-        populateRooms(areaBuilder, helperMap, roomGraph, playerPosition)
+        populateRooms(areaBuilder, helperMap, roomGraph, playerRoom, floor)
 
         return areaBuilder.build()
     }

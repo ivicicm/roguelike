@@ -37,9 +37,3 @@ fun MovingEntity.goSmartlyTowards(target: Position3D): Boolean {
     if (dir != null) move(dir)
     return dir != null
 }
-
-fun MovingEntity.goRandomly(target: Position3D): Boolean {
-    val dir = Navigation.pathTo(position, target, area)
-    if (dir != null) move(dir)
-    return dir != null
-}
