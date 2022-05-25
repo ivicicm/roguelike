@@ -13,7 +13,7 @@ class Dog: Enemy(GameTiles.Dog), HasSmell {
 
     override val maxHitpoints = 10
     override var hitpoints = 3
-    override var attack = 2
+    override var attack = 1
     override var defense = 0
 
     override val randomWalkDistance = 5

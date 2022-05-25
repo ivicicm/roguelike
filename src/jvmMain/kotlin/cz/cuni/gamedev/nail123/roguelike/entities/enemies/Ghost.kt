@@ -11,9 +11,9 @@ class Ghost: Enemy(GameTiles.GHOST), HasSmell {
     override val blocksVision = false
     override val smellingRadius = 1
 
-    override val maxHitpoints = 10
-    override var hitpoints = 9
-    override var attack = 7
+    override val maxHitpoints = 20
+    override var hitpoints = 20
+    override var attack = 6
     override var defense = 0
 
     override val dontRoamAroundTooMuch = false

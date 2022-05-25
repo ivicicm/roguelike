@@ -13,7 +13,7 @@ class Chest(val gameEntity: GameEntity): Enemy(GameTiles.CHEST) {
     override val blocksVision = false
 
     override val maxHitpoints = 10
-    override var hitpoints = 4
+    override var hitpoints = 1
     override var attack = 0
     override var defense = 0
 

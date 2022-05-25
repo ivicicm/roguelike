@@ -15,7 +15,7 @@ class Orc: Enemy(GameTiles.ORC), HasSmell {
     override val maxHitpoints = 13
     override var hitpoints = 9
     override var attack = 4
-    override var defense = 1
+    override var defense = 0
 
     val movePattern = listOf(true, true, false)
     var time = 0

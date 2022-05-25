@@ -258,13 +258,13 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val fillWithBoneFire = { room: List<Position3D> ->
             room.random().let {  areaBuilder.addEntity(Campfire(5), it) }
         }
-        val enemyCountScale = 3
+        val enemyCountScale = 2
         val possibleRooms = listOf<Pair<Int, (List<Position3D>) -> Unit>>(
-            1 to fillWithEnemies((20 * enemyCountScale).toInt(), 70) { Dog() },
-            1 to fillWithEnemies((40 * enemyCountScale).toInt(), 140) { Rat() },
-            1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300) { Orc() },
-            1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300) { Golem() },
-            0 to fillWithEmpty,
+            1 to fillWithEnemies((20 * enemyCountScale).toInt(), 70*enemyCountScale) { Dog() },
+            1 to fillWithEnemies((40 * enemyCountScale).toInt(), 140*enemyCountScale) { Rat() },
+            1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300*enemyCountScale) { Orc() },
+            1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300*enemyCountScale) { Golem() },
+            1 to fillWithEmpty,
         )
 
         val getRandomRing = {
@@ -278,7 +278,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         }
         specialRooms.getOrNull(1)?.let {
             val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
-            fillWithChest(if(floor < 3) Sword(4 + floor*2) else getRandomRing(), tiles)
+            fillWithChest(if(floor < 3) Sword(4 + floor) else getRandomRing(), tiles)
         }
         specialRooms.getOrNull(2)?.let {
             val (tiles, _) = getSameNeighbouringTiles(helperMap, it)
@@ -309,7 +309,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
             areaBuilder.addAtEmptyPosition(Ghost(), Position3D.defaultPosition(), areaBuilder.size)
         }
         repeat(5 + floor*2) {
-            areaBuilder.addAtEmptyPosition(HealthPotion(4), Position3D.defaultPosition(), areaBuilder.size)
+            areaBuilder.addAtEmptyPosition(HealthPotion(5), Position3D.defaultPosition(), areaBuilder.size)
         }
     }
 

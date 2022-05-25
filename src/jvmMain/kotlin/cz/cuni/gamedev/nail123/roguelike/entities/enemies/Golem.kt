@@ -13,8 +13,8 @@ class Golem: Enemy(GameTiles.GOLEM), HasSmell {
     override val smellingRadius = 7
 
     override val maxHitpoints = 15
-    override var hitpoints = 11
-    override var attack = 7
+    override var hitpoints = 15
+    override var attack = 6
     override var defense = 2
 
     val movePattern = listOf(true, false)
