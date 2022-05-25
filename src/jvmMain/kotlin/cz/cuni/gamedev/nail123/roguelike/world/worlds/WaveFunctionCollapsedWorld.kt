@@ -3,15 +3,15 @@ package cz.cuni.gamedev.nail123.roguelike.world.worlds
 import cz.cuni.gamedev.nail123.roguelike.GameConfig
 import cz.cuni.gamedev.nail123.roguelike.blocks.Floor
 import cz.cuni.gamedev.nail123.roguelike.blocks.Wall
+import cz.cuni.gamedev.nail123.roguelike.entities.enemies.Rat
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Door
 import cz.cuni.gamedev.nail123.roguelike.entities.objects.Stairs
 import cz.cuni.gamedev.nail123.roguelike.entities.unplacable.FogOfWar
-import cz.cuni.gamedev.nail123.roguelike.events.logMessage
 import cz.cuni.gamedev.nail123.roguelike.mechanics.Pathfinding
 import cz.cuni.gamedev.nail123.roguelike.world.Area
 import cz.cuni.gamedev.nail123.roguelike.world.builders.wavefunctioncollapse.WFCAreaBuilder
 import org.hexworks.zircon.api.data.Position3D
-import java.util.ArrayDeque
+import java.util.*
 
 enum class HelperMapTileType {
     Room, Corridor, Wall
@@ -283,6 +283,10 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val maxDistance = floodFill.values.maxOrNull()!!
         val staircasePosition = floodFill.filter { it.value > maxDistance / 2 && helperMap[it.key]?.type == HelperMapTileType.Room }.keys.random()
         areaBuilder.addEntity(Stairs(), staircasePosition)
+
+        repeat (currentLevel+2) {
+            areaBuilder.addAtEmptyPosition(Rat(), Position3D.defaultPosition(), areaBuilder.size)
+        }
 
         return areaBuilder.build()
     }
