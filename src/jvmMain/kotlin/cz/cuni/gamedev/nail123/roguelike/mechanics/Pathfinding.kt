@@ -114,7 +114,7 @@ object Pathfinding {
 
         while (openVertices.isNotEmpty()) {
             val currentPos = openVertices.pollFirst()
-            if(currentPos.distance == maxDistance)
+            if(currentPos.distance >= maxDistance)
                 continue
             movement(currentPos.position)
                     .filter { area[it]?.let { block -> blocking(block) } == false && !allDistances.containsKey(it) }

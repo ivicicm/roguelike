@@ -7,9 +7,9 @@ import cz.cuni.gamedev.nail123.roguelike.mechanics.goBlindlyTowards
 import cz.cuni.gamedev.nail123.roguelike.tiles.GameTiles
 
 class Ghost: Enemy(GameTiles.GHOST), HasSmell {
-    override val blocksMovement = true
+    override val blocksMovement = false
     override val blocksVision = false
-    override val smellingRadius = 7
+    override val smellingRadius = 1
 
     override val maxHitpoints = 10
     override var hitpoints = 9
@@ -17,7 +17,11 @@ class Ghost: Enemy(GameTiles.GHOST), HasSmell {
     override var defense = 0
 
     override fun update() {
-        goToRandomTarget()
+        if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
+            goToPlayer(true)
+        } else {
+            goToRandomTarget()
+        }
     }
 
     override fun die() {

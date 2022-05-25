@@ -230,6 +230,16 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         }
     }
 
+    private fun populateRooms(areaBuilder: WFCAreaBuilder, helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>, playerRoom: Position3D) {
+        for(roomCenter in edges.keys.filter { it != playerRoom }) {
+
+        }
+        repeat (currentLevel+12) {
+            areaBuilder.addAtEmptyPosition(Ghost(), Position3D.defaultPosition(), areaBuilder.size)
+        }
+        areaBuilder.addEntity(Golem(), Position3D.defaultPosition())
+    }
+
     override fun buildLevel(floor: Int): Area {
         val areaBuilder = WFCAreaBuilder(GameConfig.AREA_SIZE).create()
 
@@ -269,11 +279,9 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
 
         }
 
-        areaBuilder.addAtEmptyPosition(
-            areaBuilder.player,
-            Position3D.create(0, 0, 0),
-            GameConfig.VISIBLE_SIZE
-        )
+        val playerRoom = roomGraph.keys.random()
+        val playerPosition = getSameNeighbouringTiles(helperMap, playerRoom).tiles.random()
+        areaBuilder.addEntity(areaBuilder.player, playerRoom)
 
         areaBuilder.addEntity(FogOfWar(), Position3D.unknown())
 
@@ -286,9 +294,7 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val staircasePosition = floodFill.filter { it.value > maxDistance / 2 && helperMap[it.key]?.type == HelperMapTileType.Room }.keys.random()
         areaBuilder.addEntity(Stairs(), staircasePosition)
 
-        repeat (currentLevel+12) {
-            areaBuilder.addAtEmptyPosition(Ghost(), Position3D.defaultPosition(), areaBuilder.size)
-        }
+        populateRooms(areaBuilder, helperMap, roomGraph, playerPosition)
 
         return areaBuilder.build()
     }

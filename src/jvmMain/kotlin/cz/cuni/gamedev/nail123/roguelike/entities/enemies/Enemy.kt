@@ -27,7 +27,8 @@ abstract class Enemy(tile: Tile): MovingEntity(tile), HasCombatStats, Interactab
     fun goToRandomTarget(resetTarget: Boolean = false) {
         if(resetTarget || randomWalkTarget == null || chasingPlayer || randomWalkTarget == position) {
             chasingPlayer = false
-            randomWalkTarget = Pathfinding.floodFill(position, area, blocking = Pathfinding.defaultBlocking, maxDistance = 10).filter { it.value > 5 }.keys.random()
+            val closeTiles = Pathfinding.floodFill(position, area, blocking = Pathfinding.defaultBlocking, maxDistance = 10)
+            randomWalkTarget = closeTiles.filter { it.value > 5 }.keys.randomOrNull() ?: closeTiles.keys.random()
         }
         if(!goSmartlyTowards(randomWalkTarget!!))
             randomWalkTarget = null
