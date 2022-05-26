@@ -304,7 +304,6 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                 val intCount = count.toInt() + if(kotlin.random.Random.nextDouble() > count - count.toInt()) 1 else 0
                 val shuffledRoom = room.shuffled()
                 shuffledRoom.take(intCount).forEach { areaBuilder.addEntity(enemyFactory(), it) }
-                shuffledRoom.reversed().take(2).forEach { areaBuilder.addEntity(SmallPot(), it) }
                 fillWithPots(shuffledRoom.reversed(), room.size)
             }
         }
