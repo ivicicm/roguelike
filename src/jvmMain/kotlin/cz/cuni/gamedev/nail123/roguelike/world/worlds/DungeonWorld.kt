@@ -34,9 +34,11 @@ open class DungeonWorld: World() {
 
     override fun moveDown() {
         ++currentLevel
-        this.logMessage("Descended to level ${currentLevel + 1}")
+        if(currentLevel > areas.size)
+            currentLevel = areas.size
+        this.logMessage("Descended to level ${levels.size + 1}")
         if (currentLevel >= areas.size) levels.add(buildLevel(levels.size))
-        goToArea(levels[currentLevel])
+        goToArea(levels.last())
     }
 
     override fun moveUp() {
