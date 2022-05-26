@@ -9,7 +9,7 @@ import cz.cuni.gamedev.nail123.roguelike.tiles.GameTiles
 class Ghost: Enemy(GameTiles.GHOST), HasSmell {
     override val blocksMovement = false
     override val blocksVision = false
-    override val smellingRadius = 1
+    override val smellingRadius = 2
 
     override val maxHitpoints = 20
     override var hitpoints = 20
@@ -17,12 +17,17 @@ class Ghost: Enemy(GameTiles.GHOST), HasSmell {
     override var defense = 0
 
     override val dontRoamAroundTooMuch = false
+    val movePattern = listOf(true, true, true, false)
+    var time = 0
 
     override fun update() {
-        if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
-            goToPlayer()
-        } else {
-            goToRandomTarget()
+        time++
+        if(movePattern[time % movePattern.size]) {
+            if (Pathfinding.chebyshev(position, area.player.position) <= smellingRadius) {
+                goToPlayer()
+            } else {
+                goToRandomTarget()
+            }
         }
     }
 }

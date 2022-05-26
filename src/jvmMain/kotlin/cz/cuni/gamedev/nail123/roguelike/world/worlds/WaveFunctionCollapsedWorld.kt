@@ -14,6 +14,7 @@ import cz.cuni.gamedev.nail123.roguelike.world.Area
 import cz.cuni.gamedev.nail123.roguelike.world.builders.wavefunctioncollapse.WFCAreaBuilder
 import org.hexworks.zircon.api.data.Position3D
 import java.util.*
+import kotlin.math.pow
 import kotlin.random.Random.Default.nextDouble
 import kotlin.random.Random.Default.nextInt
 import kotlin.reflect.KClass
@@ -231,6 +232,64 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                     helperMap[tile] = HelperMapTile(HelperMapTileType.Wall)
             }
         }
+
+        // add corridors (alert: duplicate code)
+        val corridorPoints = connectedPoints.shuffled()
+        for(tile in corridorPoints) {
+            for(directionIndex in directions.indices) {
+                val direction = directions[directionIndex]
+                var neighbouringDirections = listOf(
+                    directions[(directionIndex + 1) % directions.size],
+                    directions[(directionIndex + directions.size - 1) % directions.size]
+                )
+                neighbouringDirections += neighbouringDirections.map { it + it }
+
+                // ensure corridor can be made, corridor also needs 2 walls on the right and left from it
+                var position = tile + direction
+                var wallPositions = mutableListOf<Position3D>()
+                while (helperMap[position]?.type == HelperMapTileType.Wall && !neighbouringDirections.any {
+                        val type =
+                            helperMap[position + it]?.type; type == HelperMapTileType.Room || type == HelperMapTileType.Corridor
+                    }) {
+                    wallPositions.add(position)
+                    position += direction
+                }
+                // if corridor leads to already connected part or can't be finished
+                if (helperMap[position]?.type != HelperMapTileType.Room)
+                    continue
+
+                // ensure not close cycle
+                val closeRooms = mutableSetOf(helperMap[tile]!!.centerPoint!!)
+                repeat(3) {
+                    val neighbours = closeRooms.flatMap { edges[it]!!.map { x -> x.roomOutCenter } }
+                    closeRooms.addAll(neighbours)
+                }
+                if(closeRooms.contains(helperMap[position]!!.centerPoint))
+                    continue
+
+                // safe to make wall
+                for(wallPosition in wallPositions) {
+                    helperMap[wallPosition] = HelperMapTile(HelperMapTileType.Corridor, wallPositions.first())
+                }
+                if(wallPositions.any()) {
+                    edges[helperMap[tile]!!.centerPoint]!!.add(
+                        Edge(
+                            helperMap[tile]!!.centerPoint!!,
+                            wallPositions.first(),
+                            helperMap[position]!!.centerPoint!!
+                        )
+                    )
+                    edges[helperMap[position]!!.centerPoint]!!.add(
+                        Edge(
+                            helperMap[position]!!.centerPoint!!,
+                            wallPositions.first(),
+                            helperMap[tile]!!.centerPoint!!
+                        )
+                    )
+                }
+                break
+            }
+        }
     }
 
     private fun populateRooms(areaBuilder: WFCAreaBuilder, helperMap: MutableMap<Position3D, HelperMapTile>, edges: MutableMap<Position3D, MutableList<Edge>>, playerRoom: Position3D, floor: Int, stairCaseRoom: Position3D) {
@@ -239,9 +298,9 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                 areaBuilder.addEntity( if(Math.random() > 0.7) Pot() else SmallPot(), it)
             }
         }
-        val fillWithEnemies = { numberOfTilesForOneEnemy: Int, tilesForEnemyScaledByLevel: Int, enemyFactory: () -> Enemy ->
+        val fillWithEnemies = { numberOfTilesForOneEnemy: Int, enemyFactory: () -> Enemy ->
             { room: List<Position3D> ->
-                val count = (room.size.coerceAtMost(200) / numberOfTilesForOneEnemy * (1 + floor.toDouble() / tilesForEnemyScaledByLevel))
+                val count = (room.size.coerceAtMost(275) / numberOfTilesForOneEnemy / 0.8.pow(floor.toDouble())).toInt()
                 val intCount = count.toInt() + if(kotlin.random.Random.nextDouble() > count - count.toInt()) 1 else 0
                 val shuffledRoom = room.shuffled()
                 shuffledRoom.take(intCount).forEach { areaBuilder.addEntity(enemyFactory(), it) }
@@ -258,17 +317,17 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         val fillWithBoneFire = { room: List<Position3D> ->
             room.random().let {  areaBuilder.addEntity(Campfire(5), it) }
         }
-        val enemyCountScale = 2
+        val enemyCountScale = 3
         val possibleRooms = listOf<Pair<Int, (List<Position3D>) -> Unit>>(
-            1 to fillWithEnemies((20 * enemyCountScale).toInt(), 70*enemyCountScale) { Dog() },
-            1 to fillWithEnemies((40 * enemyCountScale).toInt(), 140*enemyCountScale) { Rat() },
-            1 to fillWithEnemies((140 * enemyCountScale).toInt(), 500*enemyCountScale) { Orc() },
-            1 to fillWithEnemies((80 * enemyCountScale).toInt(), 300*enemyCountScale) { Golem() },
+            1 to fillWithEnemies((20 * enemyCountScale).toInt()) { Dog() },
+            1 to fillWithEnemies((40 * enemyCountScale).toInt()) { Rat() },
+            1 to fillWithEnemies((250 * enemyCountScale).toInt()) { Orc() },
+            1 to fillWithEnemies((80 * enemyCountScale).toInt()) { Golem() },
             1 to fillWithEmpty,
         )
 
         val getRandomRing = {
-            Ring(listOf(Rat::class, Dog::class, Orc::class, Golem::class).random())
+            Ring(listOf(Rat::class, Dog::class, Golem::class).random())
         }
 
         val (tiles, _) = getSameNeighbouringTiles(helperMap, stairCaseRoom)
@@ -373,13 +432,13 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
         areaBuilder.addEntity(FogOfWar(), Position3D.unknown())
 
         // Add stairs up
-        if (floor > 0) areaBuilder.addEntity(Stairs(false), areaBuilder.player.position)
+        // if (floor > 0) areaBuilder.addEntity(Stairs(false), areaBuilder.player.position)
 
         // Add stairs down
         val floodFill = Pathfinding.floodFill(areaBuilder.player.position, areaBuilder)
         val maxDistance = floodFill.values.maxOrNull()!!
         val roomCandidates =
-            floodFill.filter { it.value > maxDistance / 2 && helperMap[it.key]?.type == HelperMapTileType.Room }.keys.map { helperMap[it]!!.centerPoint }
+            floodFill.filter { it.value > maxDistance / 4 * 3 && helperMap[it.key]?.type == HelperMapTileType.Room }.keys.map { helperMap[it]!!.centerPoint }
                 .distinct().shuffled()
         val stairCaseRoom = roomCandidates.first { getSameNeighbouringTiles(helperMap, it!!).tiles.size > 50 } ?: roomCandidates.first()
 

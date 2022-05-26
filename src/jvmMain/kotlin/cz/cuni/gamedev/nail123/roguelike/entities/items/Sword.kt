@@ -7,13 +7,13 @@ import cz.cuni.gamedev.nail123.roguelike.tiles.GameTiles
 class Sword(val attackPower: Int): Weapon(GameTiles.SWORD) {
     override fun onEquip(character: HasInventory) {
         if (character is Player) {
-            character.attack += attackPower
+            character.attack = attackPower
         }
     }
 
     override fun onUnequip(character: HasInventory) {
         if (character is Player) {
-            character.attack -= attackPower
+            character.attack = 3
         }
     }
 

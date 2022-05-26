@@ -15,13 +15,13 @@ class Armor(val defence: Int): Item(GameTiles.ARMOR) {
 
     override fun onEquip(character: HasInventory) {
         if (character is Player) {
-            character.defense += defence
+            character.defense = defence
         }
     }
 
     override fun onUnequip(character: HasInventory) {
         if (character is Player) {
-            character.defense -= defence
+            character.defense = 0
         }
     }
 
