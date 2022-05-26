@@ -335,11 +335,10 @@ class WaveFunctionCollapsedWorld: DungeonWorld() {
                 0 -> areaBuilder.addEntity(Stairs(), position)
                 1 -> if(floor < 3) areaBuilder.addEntity(Chest(Armor(floor+1)), position)
                 2 -> if(floor < 3) areaBuilder.addEntity(Chest(Sword(4 + floor)), position)
-                3 -> areaBuilder.addEntity(Chest(getRandomRing()), position)
-                4 -> areaBuilder.addEntity(Campfire(10), position)
+                3 -> if(floor < 3) areaBuilder.addEntity(Chest(getRandomRing()), position)
+                4 -> if(floor < 3) areaBuilder.addEntity(Campfire(5), position)
                 5 -> areaBuilder.addEntity(HealthPotion(5), position)
                 6 -> areaBuilder.addEntity(HealthPotion(5), position)
-                7 -> areaBuilder.addEntity(HealthPotion(5), position)
             }
         }
 
